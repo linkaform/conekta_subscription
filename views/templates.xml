@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+   <record id="acquirer_form_conekta_aquirer_sub" model="ir.ui.view">
+            <field name="name">sale.subscription_form_conekta</field>
+            <field name="model">sale.subscription</field>
+            <field name="inherit_id" ref="sale_subscription.sale_subscription_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[@id='settings']" position="after">
+                    <page string="Conekta Settings" id="payment">
+                        <group>
+                            <!-- <field name="partner_id" /> -->
+                            <field name="acquirer"/>
+                            <field name="cards_conekta"/>
+                            <field name="auto_pay" />
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+    </record>
+</odoo>
