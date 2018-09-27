@@ -27,11 +27,9 @@ class ConektaSubscriptions(models.Model):
     @api.multi
     @api.onchange('partner_id')
     def _get_domain(self):
-        # print 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeentra aquiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'
         self.payment_model = self.env['account.payment']
         res = {}
         res['domain'] = {'cards_conekta':[("partner_id", "=", self.partner_id.id)]}
-        # print 'reeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeees',res
         # return res
 
 
@@ -41,23 +39,14 @@ class AccountInvoice(models.Model):
     _inherit = 'account.invoice'
 
     def action_invoice_open(self):
-        # print 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeentra', dir(self.invoice_line_ids.subscription_id)
         subscription = self.invoice_line_ids.subscription_id.id
         auto_pay = self.invoice_line_ids.subscription_id.auto_pay
 
-        # print 'suuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuubscription',subscription
-        # print 'auuuuuuuuuuuuuuuuuuuuuuuuuuuuuutopaaaaaaaaaaaaaaaaaaaaaaaaay',auto_pay
-
         if subscription != False and auto_pay != False:
-            # print 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeentra AAaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaqui'
             values = super(AccountInvoice, self).action_invoice_open()
             if self.number :
                 res = self.conekta_payment_validate()
-                print 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeentra AAaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaqui',  res
                 if res == True:
-                    pay = AccountPaymentConekta()
-                    print 'aaaaaaaaaaaaaaaaaaaaaaaacoooooooooooooooouuuuunt', pay
-                    payment = pay.action_validate_invoice_payment()
                     trans = self._create_payment_transaction()
                     # pay.payment_transaction_id = trans.id
                     # trans.state = 'done'
@@ -66,7 +55,6 @@ class AccountInvoice(models.Model):
                     raise ValidationError(message)
         else:
            res = super(AccountInvoice, self).action_invoice_open()
-        #    print 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeentra'
         return False
 
 
@@ -74,7 +62,6 @@ class AccountInvoice(models.Model):
         self.acquirer = self.env['payment.acquirer']
 
         environment = self.acquirer.search([('name','ilike','Conekta')])
-        # print 'ennnnnnnnnnnnnnnnnnnviroooooooooonment', environment.environment
 
         if environment.environment == 'prod':
              CONEKTA_KEY = environment.conekta_secret_key
@@ -130,7 +117,6 @@ class AccountInvoice(models.Model):
         currency = self.currency_id.name
         partner_id = self.partner_id
         invoice = self.number
-        #print 'noooooooooooooooooooooooombre', invoice
 
         description="Linkaform Factura %s"%invoice
 
@@ -142,24 +128,12 @@ class AccountInvoice(models.Model):
                 "card":card_token,
                 "pay_method": {'object': 'card_payment'}
         }
-        # print 'sssssssssssssssssssssssssssssssellllllllllllllllllllllllllllllffffffffffffffffff', dir(self)
-        print 'ooooooooooooooooooooooooooooooooooooooooooooooobjeeeeeeeeeeeto\n', conekta_object
 
         self._set_conketa_key()
         try:
           charge  = conekta.Charge.create(conekta_object)
-          print 'chaaaaaaaaaaaaaaaaaaaaaargeeeeeeeeeeeeeeeeeeee',charge
         except conekta.ConektaError as e:
             # self.error = e.error_json['message_to_purchaser']
             self.communication ='Not Charge'
         else:
             return True
-
-class AccountPaymentConekta(models.Model):
-    _inherit = 'account.payment'
-
-    def action_validate_invoice_payment(self):
-        res = super(AccountPaymentConekta, self).action_validate_invoice_payment()
-        print 'oooooooooooooooooooootra clllllllllllllase', res
-
-        return False
